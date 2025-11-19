@@ -1,4 +1,4 @@
-/*****************************************************************
+﻿/*****************************************************************
 |
 |    AP4 - File Processor
 |
@@ -46,6 +46,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4Debug.h"
+#include <iostream>
 
 /*----------------------------------------------------------------------
 |   types
@@ -144,7 +145,8 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_SidxAtom*              sidx,
                                 AP4_Position               sidx_position,
                                 AP4_ByteStream&            input, 
-                                AP4_ByteStream&            output)
+                                AP4_ByteStream&            output,
+                                ProgressListener* listener)
 {
     unsigned int fragment_index = 0;
     AP4_Array<FragmentMapEntry> fragment_map;
@@ -303,7 +305,10 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 result = sample_tables[i]->GetSample(j, sample);
                 if (AP4_FAILED(result)) return result;
                 sample.ReadData(sample_data_in);
-                
+                //std::cout << "fragment_index: " << fragment_index << " , item count: " << atoms.ItemCount() << " , j: " << j << std::endl;
+                if (listener) {
+                    listener->OnProgress(fragment_index, atoms.ItemCount());
+                }
                 // process the sample data
                 if (handler) {
                     result = handler->ProcessSample(sample_data_in, sample_data_out);
@@ -695,6 +700,8 @@ AP4_Processor::Process(AP4_ByteStream&   input,
                     output.Write(data_in.GetData(), data_in.GetDataSize());            
                 }
 
+                std::cout << "progress: " << i << std::endl;
+
                 // notify the progress listener
                 if (listener) {
                     listener->OnProgress(i+1, locators.ItemCount());
@@ -723,7 +730,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         }
         
         // process the fragments, if any
-        result = ProcessFragments(moov, frags, mfra, sidx, sidx_position, fragments?*fragments:input, output);
+        result = ProcessFragments(moov, frags, mfra, sidx, sidx_position, fragments?*fragments:input, output, listener);
         if (AP4_FAILED(result)) return result;
         
         // update and re-write the sidx if we have one

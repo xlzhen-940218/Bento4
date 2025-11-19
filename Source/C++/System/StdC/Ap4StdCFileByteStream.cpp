@@ -1,4 +1,4 @@
-/*****************************************************************
+﻿/*****************************************************************
 |
 |    AP4 - Stdc File Byte Stream implementation
 |
@@ -151,7 +151,7 @@ static errno_t
 AP4_fopen_s_utf8(FILE** file, const char* path, const char* mode)
 {
     AP4_WIN32_USE_CHAR_CONVERSION;
-    return _wfopen_s(file, AP4_WIN32_A2W(path), AP4_WIN32_A2W(mode));
+    return fopen_s(file, path, mode);
 }
 
 /*----------------------------------------------------------------------

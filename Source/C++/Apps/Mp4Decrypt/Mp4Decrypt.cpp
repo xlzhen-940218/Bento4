@@ -1,4 +1,4 @@
-/*****************************************************************
+﻿/*****************************************************************
 |
 |    AP4 - MP4 Decrypter
 |
@@ -33,6 +33,8 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
+#include <iostream>
+#include <iomanip> 
 
 /*----------------------------------------------------------------------
 |   constants
@@ -76,10 +78,17 @@ public:
     AP4_Result OnProgress(unsigned int step, unsigned int total);
 };
 
+int percentSlow = 0;
+
 AP4_Result
 ProgressListener::OnProgress(unsigned int step, unsigned int total)
 {
-    printf("\r%d/%d", step, total);
+    float percent = ((float)step / total) * 100;
+    if (percentSlow + 0.1 < percent) {
+        percentSlow = percent;
+        std::cout << std::fixed << std::setprecision(2) << percentSlow << "%" << std::endl;
+    }
+    //printf("\r%d/%d", step, total);
     return AP4_SUCCESS;
 }
 
