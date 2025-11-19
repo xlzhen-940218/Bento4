@@ -1,4 +1,4 @@
-/*****************************************************************
+﻿/*****************************************************************
 |
 |    AP4 - File Processor
 |
@@ -264,7 +264,8 @@ protected:
                                 AP4_SidxAtom*              sidx,
                                 AP4_Position               sidx_position,
                                 AP4_ByteStream&            input, 
-                                AP4_ByteStream&            output);
+                                AP4_ByteStream&            output,
+                                ProgressListener* listener);
     
     
     AP4_List<ExternalTrackData> m_ExternalTrackData;
