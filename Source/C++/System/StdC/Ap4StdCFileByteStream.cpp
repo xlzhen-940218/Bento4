@@ -76,6 +76,10 @@ static int fopen_s(FILE**      file,
 #include <malloc.h>
 #include <limits.h>
 #include <assert.h>
+#include <string>
+#include <filesystem>
+#include <cstdio>
+#include <iostream>
 
 #define AP4_WIN32_USE_CHAR_CONVERSION \
     int     _convert = 0;             \
@@ -144,6 +148,14 @@ W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars, UINT acp)
        NULL :                                                                   \
        W2AHelper((LPSTR)alloca(_convert), _lpw, _convert, CP_UTF8))))
 
+std::wstring Utf8ToWstring(const std::string& str) {
+    if (str.empty()) return std::wstring();
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring wstrTo(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+    return wstrTo;
+}
+
 /*----------------------------------------------------------------------
 |   AP4_fopen_s_utf8
 +---------------------------------------------------------------------*/
@@ -151,7 +163,14 @@ static errno_t
 AP4_fopen_s_utf8(FILE** file, const char* path, const char* mode)
 {
     AP4_WIN32_USE_CHAR_CONVERSION;
-    return fopen_s(file, path,mode);
+    LPWSTR command_line_w = GetCommandLineW();
+    int argc_w;
+    // 2. 使用 WinAPI 函数解析命令行字符串为 wchar_t** 数组
+    // 这个数组的编码是可靠的 UTF-16
+    LPWSTR* argv_w = CommandLineToArgvW(command_line_w, &argc_w);
+    int index = strcmp(mode, "wb+") == 0 ? 1 : 2;
+    std::wstring inputPath = argv_w[argc_w - index];
+    return _wfopen_s(file, inputPath.c_str(), Utf8ToWstring(mode).c_str());
 }
 
 /*----------------------------------------------------------------------
